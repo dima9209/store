@@ -1,11 +1,13 @@
-from users.models import User
+from users.models import User, EmailVerification
 from products.models import Basket
 from users.forms import UserLoginForm, UserRegistrationForm, UserProfileForm
 from django.contrib.messages.views import SuccessMessageMixin
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic.edit import CreateView, UpdateView
 from django.contrib.auth.views import LoginView
 from common.view import TitleMixin
+from django.views.generic.base import TemplateView
+from django.shortcuts import HttpResponseRedirect
 
 
 class UserLoginView(TitleMixin, LoginView):
@@ -37,34 +39,18 @@ class UserProfileView(TitleMixin, UpdateView):
         context['baskets'] = Basket.objects.filter(user=self.request.user)
         return context
 
-# def registration(request):
-#     if request.method == 'POST':
-#         form = UserRegistrationForm(data=request.POST)
-#         if form.is_valid():
-#             form.save()
-#             messages.success(request, 'Поздравляем! Вы успешно зарегистрированы!')
-#             return HttpResponseRedirect(reverse('users:login'))
-#     else:
-#         form = UserRegistrationForm()
-#     content = {
-#         'title': 'Store - Регистрация',
-#         'form': form
-#     }
-#     return render(request, 'users/register.html', content)
 
+class EmailVerificationView(TitleMixin, TemplateView):
+    template_name = 'users/email_verification.html'
+    title = 'Store - Подтверждение электронной почты'
 
-#@login_required
-#def profile(request):
-#    if request.method == 'POST':
-#        form = UserProfileForm(instance=request.user, data=request.POST, files=request.FILES)
-#        if form.is_valid():
-#            form.save()
-#            return HttpResponseRedirect(reverse('users:profile'))
-#    else:
-#        form = UserProfileForm(instance=request.user)
-#    context = {
-#        'title': 'Store - Профиль',
-#        'form': form,
-#        'baskets': Basket.objects.filter(user=request.user)
-#    }
-#    return render(request, 'users/profile.html', context)
+    def get(self, request, *args, **kwargs):
+        code = kwargs['code']
+        user = User.objects.get(email=kwargs['email'])
+        email_verification = EmailVerification.objects.filter(user=user, code=code)
+        if email_verification.exists() and not email_verification.first().is_expired():
+            user.is_verified_email = True
+            user.save()
+            return super(EmailVerificationView, self).get(request, *args, **kwargs)
+        else:
+            return HttpResponseRedirect(reverse('index'))
