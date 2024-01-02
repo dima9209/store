@@ -15,13 +15,13 @@ class EmailVerification(models.Model):
     code = models.UUIDField(unique=True)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
-    expiration =models.DateTimeField()
+    expiration = models.DateTimeField()
 
     def __str__(self):
         return f'EmailVerification object for {self.user.email}'
 
     def send_verification_email(self):
-        link = reverse('users:email_verification', kwargs={ 'email': self.user.email, 'code': self.code})
+        link = reverse('users:email_verification', kwargs={'email': self.user.email, 'code': self.code})
         verification_link = f'{settings.DOMAIN_NAME}{link}'
         subject = f'Подтверждение учетной записи для {self.user.username}'
         message = 'Для подтверждения учетной записи для {} перейдите по ссылке {}'.format(
@@ -29,10 +29,10 @@ class EmailVerification(models.Model):
             verification_link
         )
         send_mail(
-            subject = subject,
-            message = message,
-            from_email = settings.EMAIL_HOST_USER,
-            recipient_list = [self.user.email],
+            subject=subject,
+            message=message,
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[self.user.email],
             fail_silently=False
         )
 
