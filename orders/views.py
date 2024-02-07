@@ -1,19 +1,19 @@
-import stripe
 from http import HTTPStatus
 
-from django.http import HttpResponseRedirect, HttpResponse
-from django.views.generic.edit import CreateView
-from django.views.generic.base import TemplateView
-from django.views.generic.list import ListView
-from django.urls import reverse_lazy, reverse
+import stripe
 from django.conf import settings
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse, reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic.base import TemplateView
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import CreateView
+from django.views.generic.list import ListView
 
 from common.view import TitleMixin
 from orders.forms import CreateOrderForm
-from products.models import Basket
 from orders.models import Order
-
+from products.models import Basket
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -38,12 +38,22 @@ class OrderListView(TitleMixin, ListView):
         return queryset.filter(initiator=self.request.user)
 
 
+class OrderDetailView(DetailView):
+    template_name = 'orders/order.html'
+    model = Order
+
+    def get_context_data(self, **kwargs):
+        context = super(OrderDetailView, self).get_context_data(**kwargs)
+        context['title'] = f'Заказ # {self.object.id}'
+        return context
+
+
 class CreateOrderView(TitleMixin, CreateView):
     template_name = 'orders/order-create.html'
     form_class = CreateOrderForm
     title = 'Store - Оформление заказа'
     success_url = reverse_lazy('orders:create_order')
-    
+
     def post(self, request, *args, **kwargs):
         super(CreateOrderView, self).post(request, *args, **kwargs)
         baskets = Basket.objects.filter(user=self.request.user)
