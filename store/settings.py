@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.github',
     'debug_toolbar',
+    'django_extensions',
 
     'products',
     'orders',
@@ -146,11 +147,11 @@ CACHES = {
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "store_db",
-        "USER": "store_username",
-        "PASSWORD": "store_password",
-        "HOST": "localhost",
-        "PORT": "5432",
+        "NAME": env('DATABASE_NAME'),
+        "USER": env('DATABASE_USER'),
+        "PASSWORD": env('DATABASE_PASSWORD'),
+        "HOST": env('DATABASE_HOST'),
+        "PORT": env('DATABASE_PORT'),
     }
 }
 
@@ -191,9 +192,12 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-STATICFILES_DIRS = (
-    BASE_DIR / 'static',
-)
+if not DEBUG:
+    STATIC_ROOT = BASE_DIR / 'static'
+else:
+    STATICFILES_DIRS = (
+        BASE_DIR / 'static',
+    )
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
