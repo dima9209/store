@@ -63,7 +63,7 @@ class UserProfileForm(UserChangeForm):
         'class': "form-control py-4", 'readonly': True
     }))
     email = forms.CharField(widget=forms.EmailInput(attrs={
-        'class': "form-control py-4", 'readonly': True
+                 'class': "form-control py-4", 'readonly': True
     }))
 
     class Meta:
